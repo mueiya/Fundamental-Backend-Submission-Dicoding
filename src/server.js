@@ -1,17 +1,29 @@
-const hapi = require('@hapi/hapi');
+const Hapi = require('@hapi/hapi');
 const album = require('./api/album');
-const AlbumService = require('./services/inMemory/albumService')
+const AlbumService = require('./AlbumService')
 
 const init = async () => {
     const openService = new AlbumService();
 
     const server = Hapi.server({
         port: 5000,
-        host: 'localhost',
+        host: process.env.NODE_ENV !== 'production' ? 'localhost' : '0.0.0.0',
+        routes: {
+            cors: {
+                origin: ['*'],
+            }
+        }
+    });
+
+    await server.register({
+        plugin: album,
+        option: {
+            service: openService,
+        },
     });
     
     await server.start();
-    console.log(`Server berjalan pada ${server.info.uri}`);
+    console.log(`Server running at ${server.info.uri}`);
 };
 
 init();

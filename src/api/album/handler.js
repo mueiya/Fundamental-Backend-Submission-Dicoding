@@ -7,7 +7,7 @@ class AlbumHandler {
 
     async postAlbumHandler(request, h) {
         try {
-            const { name, year } = request.payload;
+            const { name = 'untitled', year } = request.payload;
 
             this._service.addAlbum({name, year});
             const albumId = await this._service.addAlbum({ name, year });
@@ -33,7 +33,7 @@ class AlbumHandler {
     getAlbumByIdHandler(request, h) {
         try {
             const { id } = request.params;
-            const note = this._service.getAlbumById(id);
+            const album = this._service.getAlbumById(id);
             return{
                 status: 'success',
                 data: {
@@ -48,7 +48,44 @@ class AlbumHandler {
             response.code(404);
             return response;
         }
-    } 
+    }
+
+    putAlbumByIdHandler(request, h) {
+        try {
+            const { id } = request.params;
+            this._service.editAlbumById(id, request.payload);
+            
+            return {
+                status: 'success',
+                message: 'Album Edited'
+            };
+        } catch (error) {
+            const response = h.response({
+                status: 'fail',
+                message: error.message,
+            });
+            response.conde(404);
+            return response;
+        }
+    }
+
+    deleteAlbumByIdHandler(request, h) {
+        try {
+            const { id } = request.params;
+            this._service.deleteAlbumById(id);
+            return {
+                status: 'success',
+                message: 'Album deleted'
+            };
+        } catch (error) {
+            const response = h.response({
+                status: 'fail',
+                message: error.message,
+            });
+            response.code(404);
+            return response;
+        }
+    }
 }
 
 module.exports = AlbumHandler;

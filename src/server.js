@@ -3,7 +3,7 @@ const album = require('./api/album');
 const AlbumsService = require('./services/inMemory/AlbumsService');
 
 const init = async () => {
-    const openService = new AlbumsService();
+    const albumService = new AlbumsService();
 
     const server = Hapi.server({
         port: 5000,
@@ -18,12 +18,12 @@ const init = async () => {
     await server.register({
         plugin: album,
         option: {
-            service: openService,
+            service: albumService,
         },
     });
     
     await server.start();
-    
+
     console.log(`Server running at ${server.info.uri}`);
 };
 

@@ -5,12 +5,12 @@ class AlbumHandler {
         this.postAlbumHandler = this.postAlbumHandler.bind(this);
     }
 
-    postAlbumHandler(request, h) {
+    async postAlbumHandler(request, h) {
         try {
-            const { name, year} =request.payload;
+            const { name, year } = request.payload;
 
             this._service.addAlbum({name, year});
-            const albumId = this._service.addAlbum({name, year});
+            const albumId = await this._service.addAlbum({ name, year });
             const response = h.response({
                 status: 'success',
                 message: 'album added',

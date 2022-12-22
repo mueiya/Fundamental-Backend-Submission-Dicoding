@@ -1,7 +1,7 @@
 const routes = (handler) => [
     {
         method: 'POST',
-        path: '/openMusic',
+        path: '/albums',
         handler: handler.postAlbumHandler,
     }
 ]

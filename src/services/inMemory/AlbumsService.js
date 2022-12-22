@@ -5,7 +5,7 @@ class AlbumService {
         this._album = [];
     }
 
-    addAlbum({ name, year}) {
+    addAlbum({ name, year }) {
         const id = nanoid(16);
 
         const newAlbum = {

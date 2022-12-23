@@ -1,9 +1,12 @@
 const Hapi = require('@hapi/hapi');
 const album = require('./api/album');
+const song = require('./api/song')
 const AlbumsService = require('./services/inMemory/AlbumsService');
+const SongsService = require('./services/inMemory/SongsService')
 
 const init = async () => {
     const albumService = new AlbumsService();
+    const songService = new SongsService();
 
     const server = Hapi.server({
         port: 5000,
@@ -19,6 +22,13 @@ const init = async () => {
         plugin: album,
         option: {
             service: albumService,
+        },
+    });
+
+    await server.register({
+        plugin: song,
+        option: {
+            service: songService,
         },
     });
     

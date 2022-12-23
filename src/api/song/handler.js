@@ -1,22 +1,32 @@
-class AlbumHandler {
+class SongHandler {
     constructor(service) {
         this._service = service;
 
-        this.postAlbumHandler = this.postAlbumHandler.bind(this);
-        this.getAlbumByIdHandler = this.getAlbumByIdHandler.bind(this);
+        this.postSongHandler = this.postSongHandler.bind(this);
+        this.getSongsHandler = this.getSongsHandler.bind(this);
+        this.getSongByIdHandler = this.getSongByIdHandler.bind(this);
+        this.putSongByIdHandler = this.putSongByIdHandler.bind(this);
+        this.deleteSongByIdHandler = this.deleteSongByIdHandler.bind(this);
     }
 
-    async postAlbumHandler(request, h) {
+    async postSongHandler(request, h) {
         try {
-            const { name = 'untitled', year } = request.payload;
+            const { 
+                title = 'untitled', 
+                year,
+                genre,
+                performer,
+                duration,
+                albumId,
+            } = request.payload;
 
-            this._service.addAlbum({name, year});
-            const albumId = await this._service.addAlbum({ name, year });
+            this._service.addSong({title, year, genre, performer, duration, albumId});
+            const songId = await this._service.addSong({ title, year, genre, performer, duration, albumId });
             const response = h.response({
                 status: 'success',
                 message: 'album added',
                 data: {
-                    albumId,
+                    songId,
                 },
             });
             response.code(201);
@@ -31,14 +41,24 @@ class AlbumHandler {
         }
     }
 
-    getAlbumByIdHandler(request, h) {
+    getSongsHandler() {
+        const songs = this._service.getSongs();
+        return {
+            status: 'success',
+            data: {
+                songs,
+            },
+        };
+    }
+
+    getSongByIdHandler(request, h) {
         try {
             const { id } = request.params;
-            const album = this._service.getAlbumById(id);
+            const song = this._service.getSongById(id);
             return{
                 status: 'success',
                 data: {
-                    album,
+                    song,
                 }
             };
         } catch (error) {
@@ -51,14 +71,14 @@ class AlbumHandler {
         }
     }
 
-    putAlbumByIdHandler(request, h) {
+    putSongByIdHandler(request, h) {
         try {
             const { id } = request.params;
-            this._service.editAlbumById(id, request.payload);
+            this._service.editSongById(id, request.payload);
             
             return {
                 status: 'success',
-                message: 'Album Edited'
+                message: 'Song Edited'
             };
         } catch (error) {
             const response = h.response({
@@ -70,13 +90,13 @@ class AlbumHandler {
         }
     }
 
-    deleteAlbumByIdHandler(request, h) {
+    deleteSongByIdHandler(request, h) {
         try {
             const { id } = request.params;
-            this._service.deleteAlbumById(id);
+            this._service.deleteSongById(id);
             return {
                 status: 'success',
-                message: 'Album deleted'
+                message: 'Song deleted'
             };
         } catch (error) {
             const response = h.response({
@@ -89,4 +109,4 @@ class AlbumHandler {
     }
 }
 
-module.exports = AlbumHandler;
+module.exports = SongHandler;

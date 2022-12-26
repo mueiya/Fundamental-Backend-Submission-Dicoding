@@ -1,4 +1,6 @@
 const { nanoid } = require('nanoid');
+const InvariantError = require('../../exceptions/InvariantError');
+const NotFoundError = require('../../exceptions/NotFoundError');
 
 class AlbumService {
     constructor() {
@@ -17,7 +19,7 @@ class AlbumService {
         const isSuccess = this._album.filter((album) => album.id === id).length > 0;
 
         if (!isSuccess) {
-            throw new Error('Failed to add album');
+            throw new InvariantError('Failed to add album');
         }
 
         return id;
@@ -26,7 +28,7 @@ class AlbumService {
     getAlbumById(id) {
         const album = this._album.filter((n) => n.id === id)[0];
         if (!album) {
-            throw new Error('Album not found');
+            throw new NotFoundError('Album not found');
         }
         return album;
     }
@@ -34,7 +36,7 @@ class AlbumService {
     editAlbumById(id, {name,year}) {
         const index = this._album.findIndex((album) => album.id === id);
         if (index === -1) {
-            throw new Error('Failed to edit album, id not found.');
+            throw new NotFoundError('Failed to edit album, id not found.');
         }
 
         this._album[index] = {
@@ -46,21 +48,21 @@ class AlbumService {
         const isSuccess = this._album.filter((album) => album.id === id).length > 0;
 
         if (!isSuccess) {
-            throw new Error('Failed to add album');
+            throw new InvariantError('Failed to add album');
         }
     }
 
     deleteAlbumById(id) {
         const index = this._album.findIndex((album) => album.id === id);
         if (index === -1) {
-            throw new Error('Failed to delete album, id not found.');
+            throw new NotFoundError('Failed to delete album, id not found.');
         }   
         this._album.splice(index, 1);
 
         const isSuccess = this._album.filter((album) => album.id === id).length > 0;
 
         if (isSuccess) {
-            throw new Error('Failed to delete album');
+            throw new InvariantError('Failed to delete album');
         }
     }
 }

@@ -1,3 +1,5 @@
+const ClientError = require('../../exceptions/ClientError');
+
 class AlbumHandler {
     constructor(service, validator) {
         this._service = service;
@@ -12,7 +14,7 @@ class AlbumHandler {
             this._validator.validateAlbumPayload(request.payload);
             const { name = 'untitled', year } = request.payload;
 
-            this._service.addAlbum({name, year});
+            this._service.addAlbum({ name, year });
             const albumId = await this._service.addAlbum({ name, year });
             const response = h.response({
                 status: 'success',
@@ -24,11 +26,22 @@ class AlbumHandler {
             response.code(201);
             return response;
         } catch (error) {
+            if (error instanceof ClientError) {
+                const response = h.response({
+                    status: 'fail',
+                    message: error.message,
+                });
+                response.code(400);
+                return response;
+            }
+
+            // Server ERROR!
             const response = h.response({
-                status: 'fail',
-                message: error.message,
+                status: 'error',
+                message: 'Maaf, terjadi kegagalan pada server kami.',
             });
-            response.code(400);
+            response.code(500);
+            console.error(error);
             return response;
         }
     }
@@ -37,18 +50,28 @@ class AlbumHandler {
         try {
             const { id } = request.params;
             const album = this._service.getAlbumById(id);
-            return{
+            return {
                 status: 'success',
                 data: {
                     album,
                 }
             };
         } catch (error) {
+            if (error instanceof ClientError) {
+                const response = h.response({
+                    status: 'fail',
+                    message: error.message,
+                });
+                response.code(404);
+                return response;
+            }
+            // Server ERROR!
             const response = h.response({
-                status: 'fail',
-                message: error.message,
+                status: 'error',
+                message: 'Maaf, terjadi kegagalan pada server kami.',
             });
-            response.code(404);
+            response.code(500);
+            console.error(error);
             return response;
         }
     }
@@ -58,21 +81,31 @@ class AlbumHandler {
             this._validator.validateAlbumPayload(request.payload);
             const { id } = request.params;
             this._service.editAlbumById(id, request.payload);
-            
+
             return {
                 status: 'success',
                 message: 'Album Edited'
             };
         } catch (error) {
+            if (error instanceof ClientError) {
+                const response = h.response({
+                    status: 'fail',
+                    message: error.message,
+                });
+                response.conde(404);
+                return response;
+            }
+            // Server ERROR!
             const response = h.response({
-                status: 'fail',
-                message: error.message,
+                status: 'error',
+                message: 'Maaf, terjadi kegagalan pada server kami.',
             });
-            response.conde(404);
+            response.code(500);
+            console.error(error);
             return response;
         }
-    }
 
+    }
     deleteAlbumByIdHandler(request, h) {
         try {
             const { id } = request.params;
@@ -82,11 +115,21 @@ class AlbumHandler {
                 message: 'Album deleted'
             };
         } catch (error) {
+            if (error instanceof ClientError) {
+                const response = h.response({
+                    status: 'fail',
+                    message: error.message,
+                });
+                response.code(404);
+                return response;
+            }
+            // Server ERROR!
             const response = h.response({
-                status: 'fail',
-                message: error.message,
+                status: 'error',
+                message: 'Maaf, terjadi kegagalan pada server kami.',
             });
-            response.code(404);
+            response.code(500);
+            console.error(error);
             return response;
         }
     }

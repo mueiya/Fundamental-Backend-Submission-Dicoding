@@ -1,4 +1,6 @@
 const ClientError = require('../../exceptions/ClientError');
+const InvariantError = require('../../exceptions/InvariantError');
+const NotFoundError = require('../../exceptions/NotFoundError');
 
 class AlbumHandler {
     constructor(service, validator) {
@@ -7,6 +9,8 @@ class AlbumHandler {
 
         this.postAlbumHandler = this.postAlbumHandler.bind(this);
         this.getAlbumByIdHandler = this.getAlbumByIdHandler.bind(this);
+        this.putAlbumByIdHandler = this.putAlbumByIdHandler.bind(this);
+        this.deleteAlbumByIdHandler = this.deleteAlbumByIdHandler.bind(this);
     }
 
     async postAlbumHandler(request, h) {
@@ -87,12 +91,19 @@ class AlbumHandler {
                 message: 'Album Edited'
             };
         } catch (error) {
-            if (error instanceof ClientError) {
+            if (error instanceof InvariantError) {
                 const response = h.response({
                     status: 'fail',
                     message: error.message,
                 });
-                response.conde(404);
+                response.code(400);
+                return response;
+            } else if (error instanceof NotFoundError) {
+                const response = h.response({
+                    status: 'fail',
+                    message: error.message,
+                });
+                response.code(404);
                 return response;
             }
             // Server ERROR!

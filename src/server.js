@@ -8,14 +8,16 @@ const SongsService = require('./services/inMemory/SongsService');
 //validator
 const AlbumsValidator = require('./validator/album');
 const SongValidator = require('./validator/song')
+//database
+require('dotenv').config();
 
 const init = async () => {
     const albumService = new AlbumsService();
     const songService = new SongsService();
 
     const server = Hapi.server({
-        port: 5000,
-        host: process.env.NODE_ENV !== 'production' ? 'localhost' : '0.0.0.0',
+        port: process.env.PORT,
+        host: process.env.HOST,
         routes: {
             cors: {
                 origin: ['*'],

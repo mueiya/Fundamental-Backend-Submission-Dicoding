@@ -28,6 +28,10 @@ exports.up = pgm => {
             type: 'INTEGER',
             notNull: true,
         },
+        albumId: {
+            type: 'VARCHAR(50)',
+            notNull: true,
+        }
     })
 };
 

@@ -4,7 +4,7 @@ const album = require('./api/album');
 const song = require('./api/song')
 //service
 const AlbumsService = require('./services/inMemory/AlbumsService');
-const SongsService = require('./services/inMemory/SongsService');
+const SongsService = require('./services/postgres/SongsService');
 //validator
 const AlbumsValidator = require('./validator/album');
 const SongValidator = require('./validator/song')

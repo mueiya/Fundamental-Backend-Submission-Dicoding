@@ -1,9 +1,8 @@
 /* eslint-disable camelcase */
-//failed table
 exports.shorthands = undefined;
 
 exports.up = pgm => {
-    pgm.createTable('songs', {
+    pgm.createTable('song', {
         id: {
             type: 'VARCHAR(50)',
             primaryKey: true,
@@ -30,11 +29,11 @@ exports.up = pgm => {
         },
         albumId: {
             type: 'VARCHAR(50)',
-            notNull: true,
+            notNull: false,
         },
         album: {
             type: 'TEXT',
-            notNull: true,
+            notNull: false,
         },
     })
 };

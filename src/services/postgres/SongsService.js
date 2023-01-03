@@ -3,6 +3,7 @@ const { nanoid } = require('nanoid');
 const InvariantError = require('../../exceptions/InvariantError');
 const NotFoundError = require('../../exceptions/NotFoundError');
 const { mapDBToModel,mapDBToModelAll } = require('../../utils');
+const song = require('../../api/song');
 
 class SongService {
     constructor() {
@@ -34,9 +35,26 @@ class SongService {
     }
     
     async getSongs(params){
-        console.log(params);
-        const result = await this.pool.query('SELECT * FROM song');
-        return result.rows.map(mapDBToModelAll);
+        const title = params.title;
+        const performer = params.performer
+        const query = {
+            text: 'SELECT * FROM song',
+        }
+        const result = await this.pool.query(query);
+        const songs = result.rows.map(mapDBToModelAll);
+        if (Object.keys(params).length === 0) {
+            return songs;
+        }else if (params.title) {
+            const matchTitle = songs.filter(e => e.title.toLowerCase().includes(title.toLowerCase()));
+            if(params.performer) {
+                const matchBoth = matchTitle.filter(e => e.performer.toLowerCase().includes(performer.toLowerCase()));
+                return matchBoth;
+            }
+            return matchTitle;
+        }else {
+            const matchPerformer = songs.filter(e => e.performer.toLowerCase().includes(performer.toLowerCase()));
+            return matchPerformer;
+        }
     }
 
     async getSongById(id) {

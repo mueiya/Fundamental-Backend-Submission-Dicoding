@@ -15,7 +15,7 @@ class SongService {
         genre,
         performer,
         duration,
-        albumId = 'album-',
+        albumId,
     }) {
         const id = `song-${nanoid(16)}`;
 
@@ -52,7 +52,7 @@ class SongService {
 
     async editSongById(id, {title, year, genre, performer, duration, albumId}) {
         const query = {
-            text: 'UPDATE song SET title = $1, year = $2, genre = $3, performer = $4, duration = $5, album_Id = $6 WHERE id = $7 RETURNING id',
+            text: 'UPDATE song SET title = $1, year = $2, genre = $3, performer = $4, duration = $5, album_id = $6 WHERE id = $7 RETURNING id',
             values: [title, year, genre, performer, duration, albumId, id ],
         }
 
@@ -65,7 +65,7 @@ class SongService {
 
     async deleteSongById(id) {
         const query = {
-            text: 'DELETE * FROM song WHERE id = $1 RETURNING id',
+            text: 'DELETE FROM song WHERE id = $1 RETURNING id',
             values: [id],
         };
         const result = await this.pool.query(query);

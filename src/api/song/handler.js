@@ -134,10 +134,10 @@ class SongHandler {
         }
     }
 
-    deleteSongByIdHandler(request, h) {
+    async deleteSongByIdHandler(request, h) {
         try {
             const { id } = request.params;
-            this._service.deleteSongById(id);
+            await this._service.deleteSongById(id);
             return {
                 status: 'success',
                 message: 'Song deleted'

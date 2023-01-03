@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-//failed table
+
 exports.shorthands = undefined;
 
 exports.up = pgm => {
@@ -30,10 +30,6 @@ exports.up = pgm => {
         },
         album_id: {
             type: 'VARCHAR(50)',
-            notNull: false,
-        },
-        album: {
-            type: 'TEXT',
             notNull: false,
         },
     })

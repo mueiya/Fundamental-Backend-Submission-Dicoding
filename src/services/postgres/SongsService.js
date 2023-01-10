@@ -2,7 +2,7 @@ const {Pool} = require('pg');
 const {nanoid} = require('nanoid');
 const InvariantError = require('../../exceptions/InvariantError');
 const NotFoundError = require('../../exceptions/NotFoundError');
-const {mapDBToModel, mapDBToModelAll} = require('../../utils');
+const {mapDBToModel} = require('../../utils');
 
 class SongService {
   constructor() {
@@ -36,32 +36,37 @@ class SongService {
   async getSongs(params) {
     const title = params.title;
     const performer = params.performer;
-    const query = {
-      text: 'SELECT * FROM song',
+    let query;
+    // switch case
+    switch (true) {
+      case (!title && !performer):
+        query = {
+          text: 'SELECT id, title, performer ' +
+          'FROM song ',
+        };
+        console.log('case one true');
+        break;
+      case (!title || !performer):
+        query = {
+          text: 'SELECT id, title, performer ' +
+            'FROM song ' +
+            'WHERE title ILIKE $1 or performer ILIKE $2',
+          values: [`%${title}%`, `%${performer}%`],
+        };
+        console.log('case 2 true');
+        break;
+      default:
+        query = {
+          text: 'SELECT id, title, performer ' +
+            'FROM song ' +
+            'WHERE title ILIKE $1 and performer ILIKE $2',
+          values: [`%${title}%`, `%${performer}%`],
+        };
+        console.log('case 3 true');
+        break;
     };
-
-    const result = await this.pool.query(query);
-    const songs = result.rows.map(mapDBToModelAll);
-    if (Object.keys(params).length === 0) {
-      return songs;
-    } else if (params.title) {
-      const matchTitle = songs.filter((e) =>
-        e.title.toLowerCase().includes(title.toLowerCase()));
-
-      if (params.performer) {
-        const matchBoth = matchTitle.filter((e) =>
-          e.performer.toLowerCase().includes(performer.toLowerCase()));
-
-        return matchBoth;
-      };
-
-      return matchTitle;
-    } else {
-      const matchPerformer = songs.filter((e) =>
-        e.performer.toLowerCase().includes(performer.toLowerCase()));
-
-      return matchPerformer;
-    };
+    const rows = await this.pool.query(query);
+    return rows.rows;
   };
 
   async getSongById(id) {
@@ -72,7 +77,7 @@ class SongService {
 
     const result = await this.pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new NotFoundError('song not found');
     };
 
@@ -81,14 +86,16 @@ class SongService {
 
   async editSongById(id, {title, year, genre, performer, duration, albumId}) {
     const query = {
-      // eslint-disable-next-line max-len
-      text: 'UPDATE song SET title = $1, year = $2, genre = $3, performer = $4, duration = $5, album_id = $6 WHERE id = $7 RETURNING id',
+      text: 'UPDATE song ' +
+      'SET title = $1, year = $2, genre = $3, ' +
+      'performer = $4, duration = $5, album_id = $6 ' +
+      'WHERE id = $7 RETURNING id',
       values: [title, year, genre, performer, duration, albumId, id],
     };
 
     const result = await this.pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new NotFoundError('song not found');
     };
   };
@@ -101,7 +108,7 @@ class SongService {
 
     const result = await this.pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new NotFoundError('song not found');
     };
   };

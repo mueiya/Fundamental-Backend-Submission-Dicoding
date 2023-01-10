@@ -1,7 +1,5 @@
 const {Pool} = require('pg');
 const {nanoid} = require('nanoid');
-const {mapDBToModelAlbum} = require('../../utils');
-const {mapDBToModelAll} = require('../../utils');
 const InvariantError = require('../../exceptions/InvariantError');
 const NotFoundError = require('../../exceptions/NotFoundError');
 
@@ -38,18 +36,18 @@ class AlbumService {
       values: [id],
     };
 
-    const result = await this.pool.query(query);
+    const album = await this.pool.query(query);
     const song = await this.pool.query(songquery);
 
-    if (!result.rows.length) {
+    if (!album.rowCount) {
       throw new NotFoundError('song not found');
     };
 
-    if (!song.rows.length) {
-      return result.rows.map(mapDBToModelAlbum)[0];
+    if (!song.rowCount) {
+      return album.rows[0];
     };
-    const albumSong = result.rows.map(mapDBToModelAlbum)[0];
-    albumSong.songs = song.rows.map(mapDBToModelAll);
+    const albumSong = album.rows[0];
+    albumSong.songs = song.rows;
 
     return albumSong;
   };
@@ -62,7 +60,7 @@ class AlbumService {
 
     const result = await this.pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new NotFoundError('Failed to edit album, id not found.');
     };
   };
@@ -75,7 +73,7 @@ class AlbumService {
 
     const result = await this.pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new NotFoundError('song not found');
     };
   };

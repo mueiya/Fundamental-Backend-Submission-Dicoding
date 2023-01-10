@@ -11,6 +11,8 @@ const SongValidator = require('./validator/song');
 // database
 require('dotenv').config();
 
+const ClientError = require('./exceptions/ClientError');
+
 const init = async () => {
   const albumService = new AlbumsService();
   const songService = new SongsService();
@@ -39,6 +41,35 @@ const init = async () => {
       service: songService,
       validator: SongValidator,
     },
+  });
+
+  server.ext('onPreResponse', (request, h) => {
+    const {response} = request;
+
+    if (response instanceof Error) {
+      if (response instanceof ClientError) {
+        const newResponse = h.response({
+          status: 'fail',
+          message: response.message,
+        });
+
+        newResponse.code(response.statusCode);
+        return newResponse;
+      };
+
+      if (!response.isServer) {
+        return h.continue;
+      }
+
+      const newResponse = h.response({
+        status: 'error',
+        message: 'There is error on server',
+      });
+
+      newResponse.code(500);
+      return newResponse;
+    }
+    return h.continue;
   });
 
   await server.start();

@@ -12,6 +12,6 @@
     },
     "rules": {
         "require-jsdoc" : 0,
-        "linebreak-style" : false,
+        "linebreak-style" : 0
     }
 }

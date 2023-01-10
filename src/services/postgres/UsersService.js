@@ -2,6 +2,7 @@ const {nanoid} = require('nanoid');
 const {Pool} = require('pg');
 const bcrypt = require('bcrypt');
 const InvariantError = require('../../exceptions/InvariantError');
+const NotFoundError = require('../../exceptions/NotFoundError');
 
 class UserService {
   constructor() {
@@ -17,7 +18,6 @@ class UserService {
 
     const id = `user-${nanoid(16)}`;
     const hashedPassword = await bcrypt.hash(password, 10);
-
     const query = {
       text: 'INSERT INTO user VALUES($1, $2, $3, $4) RETURNING id',
       values: [id, username, hashedPassword, fullname],
@@ -30,7 +30,7 @@ class UserService {
     }
 
     return result.rows[0].id;
-  }
+  };
 
   async verifyNewUsername(username) {
     const query = {
@@ -43,6 +43,23 @@ class UserService {
     if (result.rowCount) {
       throw new InvariantError(`Adding user failed.` +
         ` ${username} already exists`);
-    }
+    };
+  };
+
+  async getUserById(id) {
+    const query = {
+      text: 'SELECT id, username, fullname FROM user WHERE id = $1',
+      values: [id],
+    };
+
+    const result = await this.pool.query(query);
+
+    if (!result.rowCount) {
+      throw new NotFoundError('User not found');
+    };
+
+    return result.rows[0];
   }
 };
+
+module.exports - UserService;

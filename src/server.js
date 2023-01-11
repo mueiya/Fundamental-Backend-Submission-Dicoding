@@ -48,7 +48,7 @@ const init = async () => {
   });
 
   await server.register({
-    plugin: song,
+    plugin: user,
     options: {
       service: userService,
       validator: UserValisdator,

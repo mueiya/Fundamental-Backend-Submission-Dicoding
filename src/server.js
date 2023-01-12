@@ -1,17 +1,24 @@
+/* eslint-disable max-len */
+
 const Hapi = require('@hapi/hapi');
 // plugin
 const album = require('./api/album');
 const song = require('./api/song');
 const user = require('./api/user');
+const authentication = require('./api/authentication');
 // service
 const AlbumsService = require('./services/postgres/AlbumsService');
 const SongsService = require('./services/postgres/SongsService');
 const UsersService = require('./services/postgres/UsersService');
+const AuthenticationsService = require('./services/postgres/AuthenticationsService');
 // validator
 const AlbumsValidator = require('./validator/album');
 const SongValidator = require('./validator/song');
 const UserValisdator = require('./validator/user');
-// database
+const AuthenticationValidator = require('./validator/authentication');
+// token manager
+const TokenManager = require('./tokenize/TokenManager');
+// dotenv configuration
 require('dotenv').config();
 
 const ClientError = require('./exceptions/ClientError');
@@ -20,6 +27,7 @@ const init = async () => {
   const albumService = new AlbumsService();
   const songService = new SongsService();
   const userService = new UsersService();
+  const authenticationService = new AuthenticationsService();
 
   const server = Hapi.server({
     port: process.env.PORT,
@@ -31,6 +39,7 @@ const init = async () => {
     },
   });
 
+  // album plugin registration
   await server.register({
     plugin: album,
     options: {
@@ -39,6 +48,7 @@ const init = async () => {
     },
   });
 
+  // song plugin registration
   await server.register({
     plugin: song,
     options: {
@@ -47,11 +57,23 @@ const init = async () => {
     },
   });
 
+  // user plugin registration
   await server.register({
     plugin: user,
     options: {
       service: userService,
       validator: UserValisdator,
+    },
+  });
+
+  // authentication plugin registration
+  await server.register({
+    plugin: authentication,
+    options: {
+      authenticationService,
+      userService,
+      validator: AuthenticationValidator,
+      tokenManager: TokenManager,
     },
   });
 

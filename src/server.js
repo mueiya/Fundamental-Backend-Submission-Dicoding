@@ -15,7 +15,7 @@ const AuthenticationsService =
 // validator
 const AlbumsValidator = require('./validator/album');
 const SongValidator = require('./validator/song');
-const UserValisdator = require('./validator/user');
+const UserValidator = require('./validator/user');
 const AuthenticationValidator = require('./validator/authentication');
 // token manager
 const TokenManager = require('./tokenize/TokenManager');
@@ -92,7 +92,7 @@ const init = async () => {
     plugin: user,
     options: {
       service: userService,
-      validator: UserValisdator,
+      validator: UserValidator,
     },
   });
   // authentication plugin registration

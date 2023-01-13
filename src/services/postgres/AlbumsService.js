@@ -27,7 +27,7 @@ class AlbumService {
 
   async getAlbumById(id) {
     const query = {
-      text: 'SELECT * FROM album WHERE id = $1',
+      text: 'SELECT id, name, year FROM album WHERE id = $1',
       values: [id],
     };
 
@@ -43,9 +43,6 @@ class AlbumService {
       throw new NotFoundError('song not found');
     };
 
-    if (!song.rowCount) {
-      return album.rows[0];
-    };
     const albumSong = album.rows[0];
     albumSong.songs = song.rows;
 

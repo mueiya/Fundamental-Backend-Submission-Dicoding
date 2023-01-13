@@ -1,13 +1,13 @@
 /* eslint-disable camelcase */
 
 exports.up = (pgm) => {
-  pgm.createTable('user', {
+  pgm.createTable('users', {
     id: {
       type: 'VARCHAR(50)',
       primaryKey: true,
     },
     username: {
-      type: 'VARCHAR(50)',
+      type: 'TEXT',
       unique: true,
       notNull: true,
     },
@@ -23,5 +23,5 @@ exports.up = (pgm) => {
 };
 
 exports.down = (pgm) => {
-  pgm.dropTable('user');
+  pgm.dropTable('users');
 };

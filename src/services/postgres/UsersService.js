@@ -8,7 +8,7 @@ const AuthenticationError = require('../../exceptions/AuthenticationError');
 class UserService {
   constructor() {
     this.pool = new Pool();
-  }
+  };
 
   async addUser({
     username,
@@ -16,16 +16,16 @@ class UserService {
     fullname,
   }) {
     await this.verifyNewUsername(username);
+    console.log(`${username} on add username`);
 
     const id = `user-${nanoid(16)}`;
     const hashedPassword = await bcrypt.hash(password, 10);
     const query = {
-      text: 'INSERT INTO user VALUES($1, $2, $3, $4) RETURNING id',
+      text: 'INSERT INTO users VALUES($1, $2, $3, $4) RETURNING id',
       values: [id, username, hashedPassword, fullname],
     };
 
     const result = await this.pool.query(query);
-
     if (!result.rowCount) {
       throw new InvariantError('Failed to add new user');
     }
@@ -33,15 +33,17 @@ class UserService {
     return result.rows[0].id;
   };
 
+  // maybe there's still problem here
   async verifyNewUsername(username) {
+    console.log(`verify user ${username}`);
     const query = {
-      text: 'SELECT username FROM user WHERE username = $1',
+      text: 'SELECT * FROM users WHERE username = $1',
       values: [username],
     };
-
     const result = await this.pool.query(query);
-
-    if (result.rowCount) {
+    console.log(result.rows);
+    
+    if (result.rows.length > 0) {
       throw new InvariantError(`Adding user failed.` +
         ` ${username} already exists`);
     };
@@ -49,7 +51,7 @@ class UserService {
 
   async getUserById(id) {
     const query = {
-      text: 'SELECT id, username, fullname FROM user WHERE id = $1',
+      text: 'SELECT id, username, fullname FROM users WHERE id = $1',
       values: [id],
     };
 
@@ -64,7 +66,7 @@ class UserService {
 
   async verifyUserCredential(username, password) {
     const query = {
-      text: 'SELECT id, password, FROM user WHERE username = $1',
+      text: 'SELECT id, password, FROM users WHERE username = $1',
       values: [username],
     };
 

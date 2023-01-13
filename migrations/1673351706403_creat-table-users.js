@@ -1,5 +1,11 @@
+/* eslint-disable valid-jsdoc */
 /* eslint-disable camelcase */
 
+/**
+ * i dont really know why?
+ * but cant use "user" as table name
+ * use "users" instead.
+ */
 exports.up = (pgm) => {
   pgm.createTable('users', {
     id: {

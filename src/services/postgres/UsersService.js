@@ -16,7 +16,6 @@ class UserService {
     fullname,
   }) {
     await this.verifyNewUsername(username);
-    console.log(`${username} on add username`);
 
     const id = `user-${nanoid(16)}`;
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -33,16 +32,13 @@ class UserService {
     return result.rows[0].id;
   };
 
-  // maybe there's still problem here
   async verifyNewUsername(username) {
-    console.log(`verify user ${username}`);
     const query = {
       text: 'SELECT * FROM users WHERE username = $1',
       values: [username],
     };
     const result = await this.pool.query(query);
-    console.log(result.rows);
-    
+
     if (result.rows.length > 0) {
       throw new InvariantError(`Adding user failed.` +
         ` ${username} already exists`);

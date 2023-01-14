@@ -34,7 +34,7 @@ class UserService {
 
   async verifyNewUsername(username) {
     const query = {
-      text: 'SELECT * FROM users WHERE username = $1',
+      text: 'SELECT username FROM users WHERE username = $1',
       values: [username],
     };
     const result = await this.pool.query(query);
@@ -60,16 +60,15 @@ class UserService {
     return result.rows[0];
   };
 
-  async verifyUserCredential(username, password) {
+  async verifyUserCredential({username, password}) {
     const query = {
-      text: 'SELECT id, password, FROM users WHERE username = $1',
+      text: 'SELECT * FROM users WHERE username = $1',
       values: [username],
     };
 
     const result = await this.pool.query(query);
-
     if (!result.rowCount) {
-      throw new AuthenticationError('Wrong credential');
+      throw new AuthenticationError('User not found, Wrong credential');
     };
 
     const {id, password: hashedPassword} = result.rows[0];
@@ -77,7 +76,7 @@ class UserService {
     const match = await bcrypt.compare(password, hashedPassword);
 
     if (!match) {
-      throw new AuthenticationError('Wrong credential');
+      throw new AuthenticationError('Wrong password Wrong credential');
     }
 
     return id;

@@ -6,9 +6,11 @@ const {
 const InvariantError = require('../../exceptions/InvariantError');
 
 const AuthenticationValidator = {
-  validatePostAuthenticationPayload: (payload) => {
-    const validationResult = PostAuthenticationPayloadSchema.validate(payload);
-
+  validatePostAuthenticationPayload: ({username, password}) => {
+    const validationResult = PostAuthenticationPayloadSchema.validate({
+      username,
+      password,
+    });
     if (validationResult.error) {
       throw new InvariantError(validationResult.error.message);
     }
@@ -23,8 +25,9 @@ const AuthenticationValidator = {
   },
 
   validateDeleteAuthenticationPayload: (payload) => {
-    // eslint-disable-next-line max-len
-    const validationResult = DeleteAuthenticationPayloadSchema.validate(payload);
+    console.log('validation running');
+    const validationResult =
+    DeleteAuthenticationPayloadSchema.validate(payload);
 
     if (validationResult.error) {
       throw new InvariantError(validationResult.error.message);

@@ -43,6 +43,12 @@ class PlaylistHandler {
       },
     };
   }
+
+  async postSongPlaylistHandler(request) {
+    this._validator.validatePostSongsPlaylistPayload(request.payload);
+    const {id: credentialId} = request.auth.credentials;
+
+  }
 }
 
 module.exports = PlaylistHandler;

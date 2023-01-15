@@ -6,22 +6,25 @@ const album = require('./api/album');
 const song = require('./api/song');
 const user = require('./api/user');
 const authentication = require('./api/authentication');
+const playlist = require('./api/playlist');
 // service
 const AlbumsService = require('./services/postgres/AlbumsService');
 const SongsService = require('./services/postgres/SongsService');
 const UsersService = require('./services/postgres/UsersService');
 const AuthenticationsService =
   require('./services/postgres/AuthenticationsService');
+const PlaylistsService = require('./services/postgres/PlaylistsService');
 // validator
 const AlbumsValidator = require('./validator/album');
 const SongValidator = require('./validator/song');
 const UserValidator = require('./validator/user');
 const AuthenticationValidator = require('./validator/authentication');
+const PlaylistValidator = require('./validator/playlist');
 // token manager
 const TokenManager = require('./tokenize/TokenManager');
 // dotenv configuration
 require('dotenv').config();
-
+// error handler
 const ClientError = require('./exceptions/ClientError');
 
 const init = async () => {
@@ -29,6 +32,7 @@ const init = async () => {
   const songService = new SongsService();
   const userService = new UsersService();
   const authenticationService = new AuthenticationsService();
+  const playlistService = new PlaylistsService();
 
   // server configuration
   const server = Hapi.server({
@@ -59,10 +63,9 @@ const init = async () => {
       sub: false,
       maxAgeSec: process.env.ACCESS_TOKEN_AGE,
     },
-
     validate: (artifacts) => ({
-      inValid: true,
-      credential: {
+      isValid: true,
+      credentials: {
         id: artifacts.decoded.payload.id,
       },
     }),
@@ -103,6 +106,14 @@ const init = async () => {
       userService,
       validator: AuthenticationValidator,
       tokenManager: TokenManager,
+    },
+  });
+  // playlist plugin registration
+  await server.register({
+    plugin: playlist,
+    options: {
+      playlistService,
+      validator: PlaylistValidator,
     },
   });
 

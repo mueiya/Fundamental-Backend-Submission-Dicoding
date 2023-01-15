@@ -24,9 +24,10 @@ class AuthenticationHandler {
       password,
     });
 
-    const accessToken = this._tokenManager.generateAccessToken(id);
-    const refreshToken = this._tokenManager.generateRefreshToken(id);
-
+    const accessToken = this._tokenManager.generateAccessToken({id});
+    console.log(accessToken)
+    const refreshToken = this._tokenManager.generateRefreshToken({id});
+    console.log(refreshToken)
     await this._authenticationService.addRefreshToken(refreshToken);
 
     const response = h.response({

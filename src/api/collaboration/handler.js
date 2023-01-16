@@ -14,14 +14,11 @@ class CollaborationHandler {
     this._validator.validateCollaborationPayload(request.payload);
     const {id: credentialId} = request.auth.credentials;
     const {playlistId, userId} = request.payload;
-    console.log(playlistId, userId);
     await this._playlistsService.verifyPlaylistOwner(playlistId, credentialId);
-    console.log('verified as owner');
 
     await this._usersService.getUserById(userId);
     // eslint-disable-next-line max-len
     const collaborationId = await this._collaborationsService.addCollaboration(playlistId, userId);
-    console.log('added collaboration');
     const response = h.response({
       status: 'success',
       message: 'collaboration added',

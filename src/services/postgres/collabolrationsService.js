@@ -39,7 +39,7 @@ class CollaborationService {
     }
   }
 
-  async verifyCollaboration(playlistId, userId) {
+  async verifyCollaborator(playlistId, userId) {
     const query = {
       text: `SELECT * 
       FROM collaborations 
@@ -50,7 +50,7 @@ class CollaborationService {
     const result = await this.pool.query(query);
 
     if (!result.rowCount) {
-      throw new InvariantError('Failed to Verified collaboration');
+      throw new InvariantError('Failed to Verified collaborator');
     }
   }
 }

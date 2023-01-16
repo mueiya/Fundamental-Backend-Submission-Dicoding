@@ -14,7 +14,6 @@ class AuthenticationHandler {
   // Why I can't use request.payload without deconstucted it first?
   async postAuthenticationHandler(request, h) {
     const {username, password} = request.payload;
-    console.log(username);
     this._validator.validatePostAuthenticationPayload({
       username,
       password,
@@ -67,22 +66,9 @@ class AuthenticationHandler {
 
     return {
       status: 'success',
-      message: 'Access token updated',
+      message: 'Access token deleted',
     };
   }
-
-/*  async deleteAuthenticationHandler(request, h) {
-    this._validator.validateDeleteAuthenticationPayload(request.payload);
-
-    const {refreshToken} = request.payload;
-    await this._authenticationService.verifyRefreshToken(refreshToken);
-    await this._authenticationService.deleteRefreshToken(refreshToken);
-
-    return {
-      status: 'success',
-      message: 'Refresh token deleted',
-    };
-  }*/
 };
 
 module.exports = AuthenticationHandler;

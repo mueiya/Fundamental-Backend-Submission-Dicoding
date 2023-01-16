@@ -6,11 +6,12 @@ class PlaylistHandler {
     this.postPlaylistHandler = this.postPlaylistHandler.bind(this);
     this.getPlaylistHandler = this.getPlaylistHandler.bind(this);
     this.postSongPlaylistHandler = this.postSongPlaylistHandler.bind(this);
-    this.getSongPlaylistHandler = this.getSongPlaylistHandler.bind(this)
+    this.getSongPlaylistHandler = this.getSongPlaylistHandler.bind(this);
+    this.deletePlaylistHandler = this.deletePlaylistHandler.bind(this);
+    this.deleteSongPlaylistHandler = this.deleteSongPlaylistHandler.bind(this);
   }
 
   async postPlaylistHandler(request, h) {
-    console.log('postPlaylist executed');
     this._validator.validatePostPlaylistPayload(request.payload);
 
     const {name} = request.payload;
@@ -45,6 +46,20 @@ class PlaylistHandler {
       },
     };
   }
+
+  async deletePlaylistHandler(request) {
+    const {id: credentialId} = request.auth.credentials;
+    const {id} = request.params;
+
+    await this._service.verifyPlaylistOwner(id, credentialId);
+    await this._service.deletePlaylistById(id);
+
+    return {
+      status: 'success',
+      message: 'playlist deleted',
+    };
+  }
+
   async postSongPlaylistHandler(request, h) {
     this._validator.validatePostSongsPlaylistPayload(request.payload);
 
@@ -52,7 +67,6 @@ class PlaylistHandler {
     await this._service.verifySongId(songId);
 
     const {id} = request.params;
-    console.log(id);
     const {id: credentialId} = request.auth.credentials;
 
     await this._service.verifyPlaylistOwner(id, credentialId);
@@ -82,6 +96,23 @@ class PlaylistHandler {
       data: {
         playlist,
       },
+    };
+  }
+
+  async deleteSongPlaylistHandler(request) {
+    await this._validator.validateDeleteSongsPlaylistPayload(request.payload);
+    const {songId} = request.payload;
+
+    const {id: credentialId} = request.auth.credentials;
+    const {id} = request.params;
+
+    await this._service.verifyPlaylistOwner(id, credentialId);
+    console.log(songId);
+    await this._service.deleteSongPlaylist(id, songId);
+
+    return {
+      status: 'success',
+      message: 'songs deleted from playlist',
     };
   }
 }

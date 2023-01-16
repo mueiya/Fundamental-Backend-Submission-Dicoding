@@ -66,13 +66,11 @@ class PlaylistService {
       values: [owner],
     };
 
-    console.log('getPlaylist execute');
     const result = await this.pool.query(query);
     return result.rows;
   }
 
   async getSongsPlaylist(playlistId) {
-    console.log(playlistId);
     const songQuery = {
       text: `
       SELECT songs.id, songs.title, songs.performer
@@ -82,12 +80,6 @@ class PlaylistService {
       WHERE rel.playlist_id = $1`,
       values: [playlistId],
     };
-    const test = {
-      text: `SELECT *
-      FROM users`,
-    };
-    const testing = await this.pool.query(test);
-    console.log(testing.rows);
     const playlistQuery = {
       text: `SELECT playlists.id, playlists.name, users.username
       FROM playlists
@@ -102,8 +94,38 @@ class PlaylistService {
     const data = playlist.rows[0];
     data.songs = songs.rows;
 
-    console.log(playlist.rows[0]);
     return playlist.rows[0];
+  }
+
+  async deletePlaylistById(id) {
+    const query = {
+      text: 'DELETE FROM playlists WHERE id = $1 RETURNING id',
+      values: [id],
+    };
+
+    const result = await this.pool.query(query);
+
+    if (!result.rowCount) {
+      throw new NotFoundError('playlist not found');
+    };
+  }
+
+  async deleteSongPlaylist(id, songId) {
+    const query = {
+      text: `DELETE
+      FROM song_to_playlist
+      WHERE playlist_id = $1 AND song_id = $2
+      RETURNING id`,
+      values: [id, songId],
+    };
+
+    console.log(`${songId} removed from ${id}`);
+    const result = await this.pool.query(query);
+    console.log(result.rows);
+
+    if (!result.rowCount) {
+      throw new NotFoundError('playlist not found');
+    };
   }
 
   async verifyPlaylistOwner(id, owner) {
@@ -123,6 +145,8 @@ class PlaylistService {
     if (playlist.owner !== owner) {
       throw new AuthorizationError('Access Forbiden');
     }
+
+    console.log(`${owner} verified as playlist owner`);
   }
   async verifyPlaylistAccess(playlistId, userId) {
 

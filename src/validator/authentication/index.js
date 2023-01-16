@@ -25,7 +25,6 @@ const AuthenticationValidator = {
   },
 
   validateDeleteAuthenticationPayload: (payload) => {
-    console.log('validation running');
     const validationResult =
     DeleteAuthenticationPayloadSchema.validate(payload);
 

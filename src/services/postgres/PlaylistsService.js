@@ -60,9 +60,20 @@ class PlaylistService {
 
   async getPlaylist(owner) {
     const query = {
-      text: `SELECT id, name, owner AS username 
-      FROM playlists 
-      WHERE owner = $1`,
+      text: `
+      SELECT playlists.id, playlists.name, users.username
+      FROM playlists
+      INNER JOIN users
+      ON playlists.owner = users.id
+      WHERE playlists.owner = $1
+      UNION
+      SELECT playlists.id, playlists.name, users.username
+      FROM collaborations
+      INNER JOIN playlists
+      ON collaborations.playlist_id = playlists.id
+      INNER JOIN users
+      ON playlists.owner = users.id
+      WHERE collaborations.user_id = $1`,
       values: [owner],
     };
 
@@ -145,11 +156,23 @@ class PlaylistService {
     if (playlist.owner !== owner) {
       throw new AuthorizationError('Access Forbiden');
     }
-
-    console.log(`${owner} verified as playlist owner`);
   }
-  async verifyPlaylistAccess(playlistId, userId) {
 
+  async verifyPlaylistAccess(playlistId, userId) {
+    try {
+      await this.verifyPlaylistOwner(playlistId, userId);
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw error;
+      }
+
+      try {
+        console.log('error = forbiden');
+        await this._collaborationService.verifyCollaborator(playlistId, userId);
+      } catch {
+        throw error;
+      }
+    }
   }
 }
 

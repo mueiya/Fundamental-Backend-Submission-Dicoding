@@ -18,9 +18,6 @@ exports.up = (pgm) => {
 };
 
 exports.down = (pgm) => {
-  // drop constraint foreign key (owner)
-  dropConstraint('playlists', 'fk_playlist_owner');
-
   // deleting user fiktif
   pgm.sql('DELETE FROM users WHERE id = \'no_user\'');
 

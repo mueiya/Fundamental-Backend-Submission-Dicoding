@@ -26,6 +26,38 @@ class PlaylistService {
     return result.rows[0].id;
   };
 
+  async addSongsPlaylist(playlistId, songId) {
+    const id = `song_playlist-${nanoid(16)}`;
+
+    const query = {
+      text: `INSERT INTO song_to_playlist 
+      VALUES($1, $2, $3) 
+      RETURNING id`,
+      values: [id, playlistId, songId],
+    };
+
+    const result = await this.pool.query(query);
+
+    if (!result.rowCount) {
+      throw new InvariantError('failed to add song to playlist');
+    };
+
+    return result.rows[0].id;
+  }
+
+  async verifySongId(songId) {
+    const query = {
+      text: `SELECT id FROM songs WHERE id = $1`,
+      values: [songId],
+    };
+
+    const result = await this.pool.query(query);
+
+    if (!result.rowCount) {
+      throw new NotFoundError('SongId not found');
+    }
+  }
+
   async getPlaylist(owner) {
     const query = {
       text: `SELECT id, name, owner AS username 
@@ -37,6 +69,41 @@ class PlaylistService {
     console.log('getPlaylist execute');
     const result = await this.pool.query(query);
     return result.rows;
+  }
+
+  async getSongsPlaylist(playlistId) {
+    console.log(playlistId);
+    const songQuery = {
+      text: `
+      SELECT songs.id, songs.title, songs.performer
+      FROM songs
+      INNER JOIN song_to_playlist As rel
+      ON rel.song_id=songs.id
+      WHERE rel.playlist_id = $1`,
+      values: [playlistId],
+    };
+    const test = {
+      text: `SELECT *
+      FROM users`,
+    };
+    const testing = await this.pool.query(test);
+    console.log(testing.rows);
+    const playlistQuery = {
+      text: `SELECT playlists.id, playlists.name, users.username
+      FROM playlists
+      INNER JOIN users
+      ON playlists.owner = users.id
+      WHERE playlists.id = $1`,
+      values: [playlistId],
+    };
+    const songs = await this.pool.query(songQuery);
+    const playlist = await this.pool.query(playlistQuery);
+
+    const data = playlist.rows[0];
+    data.songs = songs.rows;
+
+    console.log(playlist.rows[0]);
+    return playlist.rows[0];
   }
 
   async verifyPlaylistOwner(id, owner) {

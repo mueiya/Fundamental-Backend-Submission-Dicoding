@@ -5,6 +5,8 @@ class PlaylistHandler {
 
     this.postPlaylistHandler = this.postPlaylistHandler.bind(this);
     this.getPlaylistHandler = this.getPlaylistHandler.bind(this);
+    this.postSongPlaylistHandler = this.postSongPlaylistHandler.bind(this);
+    this.getSongPlaylistHandler = this.getSongPlaylistHandler.bind(this)
   }
 
   async postPlaylistHandler(request, h) {
@@ -43,11 +45,44 @@ class PlaylistHandler {
       },
     };
   }
-
-  async postSongPlaylistHandler(request) {
+  async postSongPlaylistHandler(request, h) {
     this._validator.validatePostSongsPlaylistPayload(request.payload);
+
+    const {songId} = request.payload;
+    await this._service.verifySongId(songId);
+
+    const {id} = request.params;
+    console.log(id);
     const {id: credentialId} = request.auth.credentials;
 
+    await this._service.verifyPlaylistOwner(id, credentialId);
+    await this._service.addSongsPlaylist(id, songId);
+
+    const response = h.response({
+      status: 'success',
+      message: 'Song Added to Playlist',
+      data: {
+        id,
+      },
+    });
+    response.code(201);
+
+    return response;
+  }
+
+  async getSongPlaylistHandler(request) {
+    const {id: credentialId} = request.auth.credentials;
+    const {id} = request.params;
+
+    await this._service.verifyPlaylistOwner(id, credentialId);
+    const playlist = await this._service.getSongsPlaylist(id);
+
+    return {
+      status: 'success',
+      data: {
+        playlist,
+      },
+    };
   }
 }
 

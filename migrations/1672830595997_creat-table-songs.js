@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /* eslint-disable camelcase */
 exports.up = (pgm) => {
   pgm.createTable('songs', {
@@ -30,6 +31,8 @@ exports.up = (pgm) => {
       notNull: false,
     },
   });
+  // adding fk (album_id)
+  pgm.addConstraint('songs', 'fk_song_album', 'FOREIGN KEY(album_id) REFERENCES albums(id) ON DELETE CASCADE');
 };
 
 exports.down = (pgm) => {

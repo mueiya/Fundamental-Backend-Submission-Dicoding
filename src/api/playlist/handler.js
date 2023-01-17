@@ -127,6 +127,21 @@ class PlaylistHandler {
       message: 'songs deleted from playlist',
     };
   }
+  // Checking Playlist with playlistid
+  async isPlaylist(playlistId) {
+    const query = {
+      text: `
+        SELECT id
+        FROM playlist
+        WHERE id = $1`,
+      values: [playlistId],
+    };
+
+    const result = await this.pool.query(query);
+    if (!result.rowCount) {
+      throw new NotFoundError('activity not found');
+    }
+  }
 }
 
 module.exports = PlaylistHandler;

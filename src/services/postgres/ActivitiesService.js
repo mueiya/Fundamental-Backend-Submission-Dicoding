@@ -65,6 +65,7 @@ class ActivityService {
       throw new InvariantError('action not recorded');
     }
   }
+  // checking playlist on activities table with playlist id
   async isPlaylist(playlistId) {
     const query = {
       text: `

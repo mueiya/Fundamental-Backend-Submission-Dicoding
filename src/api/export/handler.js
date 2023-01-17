@@ -29,6 +29,9 @@ class ExportHandler {
     const response = h.response({
       status: 'success',
       message: 'Permintaan Anda sedang kami proses',
+      data: {
+        playlist,
+      },
     });
     response.code(201);
     return response;

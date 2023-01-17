@@ -14,24 +14,19 @@ class ExportHandler {
     console.log(id);
     await this._playlistService.isPlaylist(id);
     await this._playlistService.verifyPlaylistAccess(id, credentialId);
-    const playlist = await this._playlistService.getSongsPlaylist(id);
-
-    // deleting username
-    delete playlist.username;
 
     const message = {
-      playlist,
+      id,
+      targetEmail: request.payload.targetEmail,
     };
 
+    console.log(message);
     // eslint-disable-next-line max-len
     await this._service.sendMessage('export:playlists', JSON.stringify(message));
 
     const response = h.response({
       status: 'success',
       message: 'Permintaan Anda sedang kami proses',
-      data: {
-        playlist,
-      },
     });
     response.code(201);
     return response;

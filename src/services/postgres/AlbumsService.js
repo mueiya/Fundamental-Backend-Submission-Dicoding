@@ -5,7 +5,8 @@ const NotFoundError = require('../../exceptions/NotFoundError');
 const {mapDBToModelGetAlbum} = require('../../utils');
 
 class AlbumService {
-  constructor() {
+  constructor(cacheService) {
+    this._cacheService = cacheService;
     this.pool = new Pool();
   };
 
@@ -27,31 +28,47 @@ class AlbumService {
   };
 
   async getAlbumById(id) {
-    const query = {
-      text: `
-      SELECT id, name, year, cover_url
-      FROM albums 
-      WHERE id = $1`,
-      values: [id],
-    };
+    try {
+      console.log('from cache');
+      const result = await this._cacheService.get(`getalbum:${id}`);
+      const parsing = JSON.parse(result);
+      const cache = true;
+      return {
+        cache,
+        album: parsing,
+      };
+    } catch (error) {
+      const query = {
+        text: `
+        SELECT id, name, year, cover_url
+        FROM albums 
+        WHERE id = $1`,
+        values: [id],
+      };
 
-    const songquery = {
-      text: 'SELECT id, title, performer FROM songs WHERE album_id = $1',
-      values: [id],
-    };
+      const songquery = {
+        text: 'SELECT id, title, performer FROM songs WHERE album_id = $1',
+        values: [id],
+      };
 
-    const album = await this.pool.query(query);
-    const song = await this.pool.query(songquery);
+      const album = await this.pool.query(query);
+      const song = await this.pool.query(songquery);
 
-    if (!album.rowCount) {
-      throw new NotFoundError('song not found');
-    };
+      if (!album.rowCount) {
+        throw new NotFoundError('song not found');
+      };
 
-    const albumSong = album.rows.map(mapDBToModelGetAlbum)[0];
-    // inserting songs object
-    albumSong.songs = song.rows;
+      const albumSong = album.rows.map(mapDBToModelGetAlbum)[0];
+      // inserting songs object
+      albumSong.songs = song.rows;
 
-    return albumSong;
+      await this._cacheService.set(
+          `getalbum:${id}`,
+          JSON.stringify(albumSong),
+      );
+
+      return {album: albumSong};
+    }
   };
 
   async editAlbumById(id, {name, year}) {
@@ -65,6 +82,8 @@ class AlbumService {
     if (!result.rowCount) {
       throw new NotFoundError('Failed to edit album, id not found.');
     };
+
+    await this._cacheService.delete(`getalbum:${id}`);
   };
 
   async deleteAlbumById(id) {
@@ -78,6 +97,8 @@ class AlbumService {
     if (!result.rowCount) {
       throw new NotFoundError('song not found');
     };
+
+    await this._cacheService.delete(`getalbum:${id}`);
   };
 
   async addCoverUrlAlbum(id, dir) {
@@ -95,7 +116,9 @@ class AlbumService {
 
     if (!result.rowCount) {
       throw new NotFoundError('failed to add cover, album not found');
-    }
+    };
+
+    await this._cacheService.delete(`getalbum:${id}`);
   }
 };
 

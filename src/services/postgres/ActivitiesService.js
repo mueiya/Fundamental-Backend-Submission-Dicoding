@@ -49,8 +49,17 @@ class ActivityService {
     action,
   }) {
     const id = `activity-${nanoid(16)}`;
-    const timestamp = new Date().getTime().toString();
-
+    const s = new Date();
+    const year = s.getFullYear();
+    // Month start with 0, january = 0 LOL
+    const month = String(s.getMonth() + 1).padStart(2, '0');
+    const day = String(s.getDate()).padStart(2, '0');
+    const hours = String(s.getHours()).padStart(2, '0');
+    const minutes = String(s.getMinutes()).padStart(2, '0');
+    const seconds = String(s.getSeconds()).padStart(2, '0');
+    const milliseconds = String(s.getMilliseconds()).padStart(3, '0');
+    // eslint-disable-next-line max-len
+    const timestamp = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${milliseconds}Z`;
     const query = {
       text: `
             INSERT INTO activities

@@ -4,8 +4,9 @@ const InvariantError = require('../../exceptions/InvariantError');
 const NotFoundError = require('../../exceptions/NotFoundError');
 
 class LikeService {
-  constructor() {
+  constructor(cacheService) {
     this.pool = new Pool();
+    this._cacheService = cacheService;
   }
 
   async likeAlbum(userId, albumId) {
@@ -30,17 +31,32 @@ class LikeService {
   }
 
   async getLike(albumId) {
-    const query = {
-      text: `
+    try {
+      const result = await this._cacheService.get(`album:${albumId}`);
+      const parsing = JSON.parse(result);
+      return {
+        cache: true,
+        likes: parsing,
+      };
+    } catch (error) {
+      const query = {
+        text: `
         SELECT *
         FROM likes
         WHERE album_id = $1`,
-      values: [albumId],
-    };
+        values: [albumId],
+      };
 
-    const result = await this.pool.query(query);
+      const result = await this.pool.query(query);
+      const likeCount = result.rowCount;
 
-    return result.rowCount;
+      await this._cacheService.set(
+          `album:${albumId}`,
+          JSON.stringify(likeCount),
+      );
+
+      return {likes: likeCount};
+    }
   }
 
   async addLike(userId, albumId) {
@@ -61,6 +77,7 @@ class LikeService {
     }
 
     const message = `Likes Album`;
+    await this._cacheService.delete(`album:${albumId}`);
 
     return message;
   }
@@ -68,10 +85,10 @@ class LikeService {
   async deleteLike(userId, albumId) {
     const query ={
       text: `
-        DELETE 
-        FROM likes 
-        WHERE user_id = $1 and album_id = $2
-        RETURNING id`,
+      DELETE 
+      FROM likes 
+      WHERE user_id = $1 and album_id = $2
+      RETURNING id`,
       values: [userId, albumId],
     };
 
@@ -82,6 +99,7 @@ class LikeService {
     }
 
     const message = 'Likes Album Removed';
+    await this._cacheService.delete(`album:${albumId}`);
 
     return message;
   }

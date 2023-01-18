@@ -5,9 +5,8 @@ const NotFoundError = require('../../exceptions/NotFoundError');
 const {mapDBToModel} = require('../../utils');
 
 class SongService {
-  constructor(cacheService) {
+  constructor() {
     this.pool = new Pool();
-    this._cacheService = cacheService;
   };
 
   async addSong({
@@ -31,92 +30,63 @@ class SongService {
       throw new InvariantError('Failed to add song');
     };
 
-    await this._cacheService.delete(`allsong`);
-
     return result.rows[0].id;
   };
 
   async getSongs(params) {
     const title = params.title;
     const performer = params.performer;
-    try {
-      // eslint-disable-next-line max-len
-      const result = await this._cacheService.get(`allsong`);
-      const parsing = JSON.parse(result);
-      return {
-        cache: true,
-        songs: parsing,
-      };
-    } catch (error) {
-      let query;
-      // switch case
-      switch (true) {
-        case (!title && !performer):
-          query = {
-            text: 'SELECT id, title, performer ' +
+    let query;
+    // switch case
+    switch (true) {
+      case (!title && !performer):
+        query = {
+          text: 'SELECT id, title, performer ' +
             'FROM songs ',
-          };
-          break;
-        case (!title || !performer):
-          query = {
-            text: 'SELECT id, title, performer ' +
+        };
+        break;
+      case (!title || !performer):
+        query = {
+          text: 'SELECT id, title, performer ' +
               'FROM songs ' +
               'WHERE title ILIKE $1 or performer ILIKE $2',
-            values: [`%${title}%`, `%${performer}%`],
-          };
-          break;
-        default:
-          query = {
-            text: 'SELECT id, title, performer ' +
+          values: [`%${title}%`, `%${performer}%`],
+        };
+        break;
+      default:
+        query = {
+          text: 'SELECT id, title, performer ' +
               'FROM songs ' +
               'WHERE title ILIKE $1 and performer ILIKE $2',
-            values: [`%${title}%`, `%${performer}%`],
-          };
-          break;
-      };
-      const rows = await this.pool.query(query);
-      const songs = rows.rows;
+          values: [`%${title}%`, `%${performer}%`],
+        };
+        break;
+    };
+    const rows = await this.pool.query(query);
+    const songs = rows.rows;
 
-      await this._cacheService.set(
-          `allsong`,
-          JSON.stringify(songs),
-      );
-      return {songs: songs};
-    }
+    return {songs: songs};
   };
 
   async getSongById(id) {
-    try {
-      const result = await this._cacheService.get(`song:${id}`);
-      const parsing = JSON.parse(result);
-      return {
-        cache: true,
-        song: parsing,
-      };
-    } catch (error) {
-      const query = {
-        text: 'SELECT * FROM songs WHERE id = $1',
-        values: [id],
-      };
+    const query = {
+      text: 'SELECT * FROM songs WHERE id = $1',
+      values: [id],
+    };
 
-      const result = await this.pool.query(query);
+    const result = await this.pool.query(query);
 
-      if (!result.rowCount) {
-        throw new NotFoundError('song not found');
-      };
+    if (!result.rowCount) {
+      throw new NotFoundError('song not found');
+    };
 
-      const song = result.rows.map(mapDBToModel)[0];
-      await this._cacheService.set(
-          `song:${id}`,
-          JSON.stringify(song),
-      );
+    const song = result.rows.map(mapDBToModel)[0];
 
-      return {song};
-    }
+
+    return {song};
   };
 
   async editSongById(id, {title, year, genre, performer, duration, albumId}) {
-    const songId = id;
     const query = {
       text: 'UPDATE songs ' +
       'SET title = $1, year = $2, genre = $3, ' +
@@ -130,9 +100,6 @@ class SongService {
     if (!result.rowCount) {
       throw new NotFoundError('song not found');
     };
-
-    await this._cacheService.delete(`allsong`);
-    await this._cacheService.delete(`song:${songId}`);
   };
 
   async deleteSongById(id) {
@@ -146,9 +113,6 @@ class SongService {
     if (!result.rowCount) {
       throw new NotFoundError('song not found');
     };
-
-    await this._cacheService.delete(`allsong`);
-    await this._cacheService.delete(`song:${id}`);
   };
 };
 

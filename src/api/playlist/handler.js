@@ -38,7 +38,7 @@ class PlaylistHandler {
   async getPlaylistHandler(request, h) {
     const {id: credentialId} = request.auth.credentials;
 
-    const {cache, playlists} = await this._service.getPlaylist(credentialId);
+    const {playlists} = await this._service.getPlaylist(credentialId);
 
     const response = h.response({
       status: 'success',
@@ -46,8 +46,6 @@ class PlaylistHandler {
         playlists,
       },
     });
-
-    if (cache) response.header('X-Data-Source', 'cache');
     return response;
   }
 
@@ -99,7 +97,7 @@ class PlaylistHandler {
     const {id} = request.params;
 
     await this._service.verifyPlaylistAccess(id, credentialId);
-    const {cache, playlist} = await this._service.getSongsPlaylist(id);
+    const {playlist} = await this._service.getSongsPlaylist(id);
 
     const response = h.response({
       status: 'success',
@@ -108,7 +106,6 @@ class PlaylistHandler {
       },
     });
 
-    if (cache) response.header('X-Data-Source', 'cache');
     return response;
   }
 

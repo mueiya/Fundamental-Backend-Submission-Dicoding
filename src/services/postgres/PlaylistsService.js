@@ -5,7 +5,8 @@ const InvariantError = require('../../exceptions/InvariantError');
 const NotFoundError = require('../../exceptions/NotFoundError');
 
 class PlaylistService {
-  constructor(collaborationService) {
+  constructor(collaborationService, cacheService) {
+    this._cacheService = cacheService;
     this.pool = new Pool();
     this._collaborationService = collaborationService;
   };
@@ -23,10 +24,12 @@ class PlaylistService {
       throw new InvariantError('Failed to add playlist');
     };
 
+    await this._cacheService.delete(`playlist:${owner}`);
+
     return result.rows[0].id;
   };
 
-  async addSongsPlaylist(playlistId, songId) {
+  async addSongsPlaylist(playlistId, songId, owner) {
     const id = `song_playlist-${nanoid(16)}`;
 
     const query = {
@@ -41,6 +44,8 @@ class PlaylistService {
     if (!result.rowCount) {
       throw new InvariantError('failed to add song to playlist');
     };
+
+    await this._cacheService.delete(`playlist:${owner}`);
 
     return result.rows[0].id;
   }
@@ -59,26 +64,42 @@ class PlaylistService {
   }
 
   async getPlaylist(owner) {
-    const query = {
-      text: `
-      SELECT playlists.id, playlists.name, users.username
-      FROM playlists
-      INNER JOIN users
-      ON playlists.owner = users.id
-      WHERE playlists.owner = $1
-      UNION
-      SELECT playlists.id, playlists.name, users.username
-      FROM collaborations
-      INNER JOIN playlists
-      ON collaborations.playlist_id = playlists.id
-      INNER JOIN users
-      ON playlists.owner = users.id
-      WHERE collaborations.user_id = $1`,
-      values: [owner],
-    };
+    try {
+      const result = await this._cacheService.get(`playlist:${owner}`);
+      const parsing = JSON.parse(result);
+      return {
+        cache: true,
+        playlists: parsing,
+      };
+    } catch (error) {
+      const query = {
+        text: `
+        SELECT playlists.id, playlists.name, users.username
+        FROM playlists
+        INNER JOIN users
+        ON playlists.owner = users.id
+        WHERE playlists.owner = $1
+        UNION
+        SELECT playlists.id, playlists.name, users.username
+        FROM collaborations
+        INNER JOIN playlists
+        ON collaborations.playlist_id = playlists.id
+        INNER JOIN users
+        ON playlists.owner = users.id
+        WHERE collaborations.user_id = $1`,
+        values: [owner],
+      };
 
-    const result = await this.pool.query(query);
-    return result.rows;
+      const result = await this.pool.query(query);
+      const playlists = result.rows;
+
+      await this._cacheService.set(
+          `playlist:${owner}`,
+          JSON.stringify(playlists),
+      );
+
+      return {playlists};
+    }
   }
 
   async getSongsPlaylist(playlistId) {
@@ -108,7 +129,7 @@ class PlaylistService {
     return playlist.rows[0];
   }
 
-  async deletePlaylistById(id) {
+  async deletePlaylistById(id, owner) {
     const query = {
       text: 'DELETE FROM playlists WHERE id = $1 RETURNING id',
       values: [id],
@@ -119,9 +140,11 @@ class PlaylistService {
     if (!result.rowCount) {
       throw new NotFoundError('playlist not found');
     };
+
+    await this._cacheService.delete(`playlist:${owner}`);
   }
 
-  async deleteSongPlaylist(id, songId) {
+  async deleteSongPlaylist(id, songId, owner) {
     const query = {
       text: `DELETE
       FROM song_to_playlist
@@ -135,6 +158,8 @@ class PlaylistService {
     if (!result.rowCount) {
       throw new NotFoundError('playlist not found');
     };
+
+    await this._cacheService.delete(`playlist:${owner}`);
   }
 
   async verifyPlaylistOwner(id, owner) {

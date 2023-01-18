@@ -35,17 +35,20 @@ class PlaylistHandler {
     return response;
   };
 
-  async getPlaylistHandler(request) {
+  async getPlaylistHandler(request, h) {
     const {id: credentialId} = request.auth.credentials;
 
-    const playlists = await this._service.getPlaylist(credentialId);
+    const {cache, playlists} = await this._service.getPlaylist(credentialId);
 
-    return {
+    const response = h.response({
       status: 'success',
       data: {
         playlists,
       },
-    };
+    });
+
+    if (cache) response.header('X-Data-Source', 'cache');
+    return response;
   }
 
   async deletePlaylistHandler(request) {
@@ -53,7 +56,7 @@ class PlaylistHandler {
     const {id} = request.params;
 
     await this._service.verifyPlaylistOwner(id, credentialId);
-    await this._service.deletePlaylistById(id);
+    await this._service.deletePlaylistById(id, credentialId);
 
     return {
       status: 'success',
@@ -71,7 +74,7 @@ class PlaylistHandler {
     const {id: credentialId} = request.auth.credentials;
 
     await this._service.verifyPlaylistAccess(id, credentialId);
-    await this._service.addSongsPlaylist(id, songId);
+    await this._service.addSongsPlaylist(id, songId, credentialId);
 
     await this.activityService.recordAdd({
       playlistId: id,
@@ -114,7 +117,7 @@ class PlaylistHandler {
     const {id} = request.params;
 
     await this._service.verifyPlaylistAccess(id, credentialId);
-    await this._service.deleteSongPlaylist(id, songId);
+    await this._service.deleteSongPlaylist(id, songId, credentialId);
 
     await this.activityService.recordDelete({
       playlistId: id,

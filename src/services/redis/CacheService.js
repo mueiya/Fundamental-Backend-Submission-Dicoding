@@ -32,6 +32,7 @@ class CacheService {
   }
 
   delete(key) {
+    console.log(`delete: ${key}`);
     return this._client.del(key);
   }
 }

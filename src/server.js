@@ -54,7 +54,7 @@ const init = async () => {
   const activityService = new ActivityService();
   const collaborationService = new CollaborationService();
   const playlistService =
-    new PlaylistsService(collaborationService);
+    new PlaylistsService(collaborationService, cacheService);
   const storageService =
     new StorageService(path.resolve(__dirname, 'api/upload/file/images'));
   const likeService = new LikeService(cacheService);

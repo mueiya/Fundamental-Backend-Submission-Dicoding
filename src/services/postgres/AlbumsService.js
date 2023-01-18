@@ -44,7 +44,10 @@ class AlbumService {
     };
 
     const albumSong = album.rows[0];
+    // inserting songs object
     albumSong.songs = song.rows;
+    // inserting cover url
+    albumSong.coverUrl = null;
 
     return albumSong;
   };

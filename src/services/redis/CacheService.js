@@ -23,10 +23,10 @@ class CacheService {
   }
 
   async get(key) {
-    console.log('get data from cache');
     const result = await this._client.get(key);
 
     if (result === null) throw new Error('Cache not found');
+    console.log('get data from cache');
 
     return result;
   }

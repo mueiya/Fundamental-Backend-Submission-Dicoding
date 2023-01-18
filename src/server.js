@@ -1,6 +1,7 @@
 // Hapi
 const Hapi = require('@hapi/hapi');
 const Jwt = require('@hapi/jwt');
+const path = require('path');
 // plugin
 const album = require('./api/album');
 const song = require('./api/song');
@@ -10,6 +11,7 @@ const playlist = require('./api/playlist');
 const collaboration = require('./api/collaboration');
 const activity = require('./api/activity');
 const _export = require('./api/export');
+const upload = require('./api/upload');
 // service
 const AlbumsService = require('./services/postgres/AlbumsService');
 const SongsService = require('./services/postgres/SongsService');
@@ -21,6 +23,7 @@ const CollaborationService =
   require('./services/postgres/CollabolrationsService');
 const ActivityService = require('./services/postgres/ActivitiesService');
 const ProducerService = require('./services/rabbitmq/ProducerSevice');
+const StorageService = require('./services/storage/StorageService');
 // validator
 const CollaborationValidator = require('./validator/collaboration');
 const AlbumsValidator = require('./validator/album');
@@ -29,6 +32,7 @@ const UserValidator = require('./validator/user');
 const AuthenticationValidator = require('./validator/authentication');
 const PlaylistValidator = require('./validator/playlist');
 const ExportValidator = require('./validator/export');
+const UploadValidator = require('./validator/upload');
 // token manager
 const TokenManager = require('./tokenize/TokenManager');
 // dotenv configuration
@@ -46,6 +50,8 @@ const init = async () => {
   const collaborationService = new CollaborationService();
   const playlistService =
     new PlaylistsService(collaborationService);
+  const storageService =
+    new StorageService(path.resolve(__dirname, 'api/upload/file/images'));
 
   // server configuration
   const server = Hapi.server({
@@ -152,6 +158,13 @@ const init = async () => {
       service: ProducerService,
       validator: ExportValidator,
       playlistService,
+    },
+  });
+  await server.register({
+    plugin: upload,
+    options: {
+      service: storageService,
+      validator: UploadValidator,
     },
   });
 

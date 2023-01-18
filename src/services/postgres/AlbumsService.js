@@ -27,7 +27,6 @@ class AlbumService {
   };
 
   async getAlbumById(id) {
-    console.log(`get ${id} from library`);
     const query = {
       text: `
       SELECT id, name, year, cover_url

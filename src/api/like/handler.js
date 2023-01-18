@@ -10,10 +10,8 @@ class LikeHandler {
   async postLikeAlbumHandler(request, h) {
     const {id: credentialId} = request.auth.credentials;
     const {id} = request.params;
-    console.log(`checking ${id} on library`);
 
     await this._albumService.getAlbumById(id);
-    console.log('album found');
     const message = await this._likeService.likeAlbum(credentialId, id);
 
     const response = h.response({

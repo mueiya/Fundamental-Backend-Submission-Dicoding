@@ -2,6 +2,7 @@ const {Pool} = require('pg');
 const {nanoid} = require('nanoid');
 const InvariantError = require('../../exceptions/InvariantError');
 const NotFoundError = require('../../exceptions/NotFoundError');
+const {mapDBToModelGetAlbum} = require('../../utils');
 
 class AlbumService {
   constructor() {
@@ -27,7 +28,10 @@ class AlbumService {
 
   async getAlbumById(id) {
     const query = {
-      text: 'SELECT id, name, year FROM albums WHERE id = $1',
+      text: `
+      SELECT id, name, year, cover_url
+      FROM albums 
+      WHERE id = $1`,
       values: [id],
     };
 
@@ -43,11 +47,9 @@ class AlbumService {
       throw new NotFoundError('song not found');
     };
 
-    const albumSong = album.rows[0];
+    const albumSong = album.rows.map(mapDBToModelGetAlbum)[0];
     // inserting songs object
     albumSong.songs = song.rows;
-    // inserting cover url
-    albumSong.coverUrl = null;
 
     return albumSong;
   };
@@ -77,6 +79,24 @@ class AlbumService {
       throw new NotFoundError('song not found');
     };
   };
+
+  async addCoverUrlAlbum(id, dir) {
+    console.log(dir);
+    const query = {
+      text: `
+      UPDATE albums
+      SET cover_url = $1
+      WHERE id = $2
+      RETURNING id`,
+      values: [dir, id],
+    };
+
+    const result = await this.pool.query(query);
+
+    if (!result.rowCount) {
+      throw new NotFoundError('failed to add cover, album not found');
+    }
+  }
 };
 
 module.exports = AlbumService;

@@ -1,6 +1,7 @@
 // Hapi
 const Hapi = require('@hapi/hapi');
 const Jwt = require('@hapi/jwt');
+const Inert = require('@hapi/inert');
 const path = require('path');
 // plugin
 const album = require('./api/album');
@@ -69,9 +70,14 @@ const init = async () => {
    * Need executed before the the protected plugin registered
    */
   // registration
-  await server.register({
-    plugin: Jwt,
-  });
+  await server.register([
+    {
+      plugin: Jwt,
+    },
+    {
+      plugin: Inert,
+    },
+  ]);
 
   // strategy
   server.auth.strategy('openmusic_jwt', 'jwt', {
@@ -165,6 +171,7 @@ const init = async () => {
     options: {
       service: storageService,
       validator: UploadValidator,
+      albumService,
     },
   });
 

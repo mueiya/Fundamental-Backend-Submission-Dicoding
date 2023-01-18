@@ -1,7 +1,8 @@
 class UploadHandler {
-  constructor(service, validator) {
+  constructor(service, validator, albumService) {
     this._service = service;
     this._validator = validator;
+    this._albumService = albumService;
 
     this.postUploadImageHandler = this.postUploadImageHandler.bind(this);
   }
@@ -10,11 +11,12 @@ class UploadHandler {
     console.log(`postUploadImageHandler is running`);
 
     const {cover} = request.payload;
-    console.log(cover);
+    const {id} = request.params;
     this._validator.validateImageHeader(cover.hapi.headers);
-    console.log(`validation success`);
 
+    await this._albumService.getAlbumById(id);
     const filename = await this._service.writeFile(cover, cover.hapi);
+    await this._albumService.addCoverUrlAlbum(id, `http://${process.env.HOST}:${process.env.PORT}/upload/images/${filename}`);
 
     const response = h.response({
       status: 'success',

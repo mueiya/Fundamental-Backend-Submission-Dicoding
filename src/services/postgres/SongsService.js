@@ -86,21 +86,37 @@ class SongService {
   };
 
   async getSongById(id) {
-    const query = {
-      text: 'SELECT * FROM songs WHERE id = $1',
-      values: [id],
-    };
+    try {
+      const result = await this._cacheService.get(`song:${id}`);
+      const parsing = JSON.parse(result);
+      return {
+        cache: true,
+        song: parsing,
+      };
+    } catch (error) {
+      const query = {
+        text: 'SELECT * FROM songs WHERE id = $1',
+        values: [id],
+      };
 
-    const result = await this.pool.query(query);
+      const result = await this.pool.query(query);
 
-    if (!result.rowCount) {
-      throw new NotFoundError('song not found');
-    };
+      if (!result.rowCount) {
+        throw new NotFoundError('song not found');
+      };
 
-    return result.rows.map(mapDBToModel)[0];
+      const song = result.rows.map(mapDBToModel)[0];
+      await this._cacheService.set(
+          `song:${id}`,
+          JSON.stringify(song),
+      );
+
+      return {song};
+    }
   };
 
   async editSongById(id, {title, year, genre, performer, duration, albumId}) {
+    const songId = id;
     const query = {
       text: 'UPDATE songs ' +
       'SET title = $1, year = $2, genre = $3, ' +
@@ -116,6 +132,7 @@ class SongService {
     };
 
     await this._cacheService.delete(`allsong`);
+    await this._cacheService.delete(`song:${songId}`);
   };
 
   async deleteSongById(id) {
@@ -131,6 +148,7 @@ class SongService {
     };
 
     await this._cacheService.delete(`allsong`);
+    await this._cacheService.delete(`song:${id}`);
   };
 };
 

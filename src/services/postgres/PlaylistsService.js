@@ -46,6 +46,8 @@ class PlaylistService {
     };
 
     await this._cacheService.delete(`playlist:${owner}`);
+    await this._cacheService.delete(`songplaylist:${playlistId}`);
+
 
     return result.rows[0].id;
   }
@@ -103,30 +105,46 @@ class PlaylistService {
   }
 
   async getSongsPlaylist(playlistId) {
-    const songQuery = {
-      text: `
-      SELECT songs.id, songs.title, songs.performer
-      FROM songs
-      INNER JOIN song_to_playlist As rel
-      ON rel.song_id=songs.id
-      WHERE rel.playlist_id = $1`,
-      values: [playlistId],
-    };
-    const playlistQuery = {
-      text: `SELECT playlists.id, playlists.name, users.username
-      FROM playlists
-      INNER JOIN users
-      ON playlists.owner = users.id
-      WHERE playlists.id = $1`,
-      values: [playlistId],
-    };
-    const songs = await this.pool.query(songQuery);
-    const playlist = await this.pool.query(playlistQuery);
+    try {
+      const result = await this._cacheService.get(`songplaylist:${playlistId}`);
+      const parsing = JSON.parse(result);
+      return {
+        cache: true,
+        playlist: parsing,
+      };
+    } catch (error) {
+      const songQuery = {
+        text: `
+        SELECT songs.id, songs.title, songs.performer
+        FROM songs
+        INNER JOIN song_to_playlist As rel
+        ON rel.song_id=songs.id
+        WHERE rel.playlist_id = $1`,
+        values: [playlistId],
+      };
+      const playlistQuery = {
+        text: `SELECT playlists.id, playlists.name, users.username
+        FROM playlists
+        INNER JOIN users
+        ON playlists.owner = users.id
+        WHERE playlists.id = $1`,
+        values: [playlistId],
+      };
+      const songs = await this.pool.query(songQuery);
+      const playlist = await this.pool.query(playlistQuery);
 
-    const data = playlist.rows[0];
-    data.songs = songs.rows;
+      const data = playlist.rows[0];
+      data.songs = songs.rows;
 
-    return playlist.rows[0];
+      const response = playlist.rows[0];
+
+      await this._cacheService.set(
+          `songplaylist:${playlistId}`,
+          JSON.stringify(response),
+      );
+
+      return {playlist: response};
+    }
   }
 
   async deletePlaylistById(id, owner) {
@@ -142,6 +160,7 @@ class PlaylistService {
     };
 
     await this._cacheService.delete(`playlist:${owner}`);
+    await this._cacheService.delete(`songplaylist:${id}`);
   }
 
   async deleteSongPlaylist(id, songId, owner) {
@@ -160,6 +179,7 @@ class PlaylistService {
     };
 
     await this._cacheService.delete(`playlist:${owner}`);
+    await this._cacheService.delete(`songplaylist:${id}`);
   }
 
   async verifyPlaylistOwner(id, owner) {

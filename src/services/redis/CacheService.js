@@ -16,7 +16,7 @@ class CacheService {
   }
 
   async set(key, value, expirationInSecond = 3000) {
-    console.log('set data to cache');
+    console.log(`set data to cache:${key}`);
     await this._client.set(key, value, {
       EX: expirationInSecond,
     });
@@ -26,7 +26,7 @@ class CacheService {
     const result = await this._client.get(key);
 
     if (result === null) throw new Error('Cache not found');
-    console.log('get data from cache');
+    console.log(`get data from cache:${key}`);
 
     return result;
   }

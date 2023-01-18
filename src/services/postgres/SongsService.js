@@ -5,8 +5,9 @@ const NotFoundError = require('../../exceptions/NotFoundError');
 const {mapDBToModel} = require('../../utils');
 
 class SongService {
-  constructor() {
+  constructor(cacheService) {
     this.pool = new Pool();
+    this._cacheService = cacheService;
   };
 
   async addSong({
@@ -30,40 +31,58 @@ class SongService {
       throw new InvariantError('Failed to add song');
     };
 
+    await this._cacheService.delete(`allsong`);
+
     return result.rows[0].id;
   };
 
   async getSongs(params) {
     const title = params.title;
     const performer = params.performer;
-    let query;
-    // switch case
-    switch (true) {
-      case (!title && !performer):
-        query = {
-          text: 'SELECT id, title, performer ' +
-          'FROM songs ',
-        };
-        break;
-      case (!title || !performer):
-        query = {
-          text: 'SELECT id, title, performer ' +
-            'FROM songs ' +
-            'WHERE title ILIKE $1 or performer ILIKE $2',
-          values: [`%${title}%`, `%${performer}%`],
-        };
-        break;
-      default:
-        query = {
-          text: 'SELECT id, title, performer ' +
-            'FROM songs ' +
-            'WHERE title ILIKE $1 and performer ILIKE $2',
-          values: [`%${title}%`, `%${performer}%`],
-        };
-        break;
-    };
-    const rows = await this.pool.query(query);
-    return rows.rows;
+    try {
+      // eslint-disable-next-line max-len
+      const result = await this._cacheService.get(`allsong`);
+      const parsing = JSON.parse(result);
+      return {
+        cache: true,
+        songs: parsing,
+      };
+    } catch (error) {
+      let query;
+      // switch case
+      switch (true) {
+        case (!title && !performer):
+          query = {
+            text: 'SELECT id, title, performer ' +
+            'FROM songs ',
+          };
+          break;
+        case (!title || !performer):
+          query = {
+            text: 'SELECT id, title, performer ' +
+              'FROM songs ' +
+              'WHERE title ILIKE $1 or performer ILIKE $2',
+            values: [`%${title}%`, `%${performer}%`],
+          };
+          break;
+        default:
+          query = {
+            text: 'SELECT id, title, performer ' +
+              'FROM songs ' +
+              'WHERE title ILIKE $1 and performer ILIKE $2',
+            values: [`%${title}%`, `%${performer}%`],
+          };
+          break;
+      };
+      const rows = await this.pool.query(query);
+      const songs = rows.rows;
+
+      await this._cacheService.set(
+          `allsong`,
+          JSON.stringify(songs),
+      );
+      return {songs: songs};
+    }
   };
 
   async getSongById(id) {
@@ -95,6 +114,8 @@ class SongService {
     if (!result.rowCount) {
       throw new NotFoundError('song not found');
     };
+
+    await this._cacheService.delete(`allsong`);
   };
 
   async deleteSongById(id) {
@@ -108,6 +129,8 @@ class SongService {
     if (!result.rowCount) {
       throw new NotFoundError('song not found');
     };
+
+    await this._cacheService.delete(`allsong`);
   };
 };
 

@@ -47,8 +47,8 @@ const ClientError = require('./exceptions/ClientError');
 const init = async () => {
   // call new Service()
   const cacheService = new CacheService();
-  const albumService = new AlbumsService();
-  const songService = new SongsService();
+  const albumService = new AlbumsService(cacheService);
+  const songService = new SongsService(cacheService);
   const authenticationService = new AuthenticationsService();
   const userService = new UsersService();
   const activityService = new ActivityService();

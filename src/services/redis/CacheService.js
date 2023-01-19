@@ -15,7 +15,7 @@ class CacheService {
     this._client.connect();
   }
 
-  async set(key, value, expirationInSecond = 3000) {
+  async set(key, value, expirationInSecond = 1800) {
     console.log(`set data to cache:${key}`);
     await this._client.set(key, value, {
       EX: expirationInSecond,

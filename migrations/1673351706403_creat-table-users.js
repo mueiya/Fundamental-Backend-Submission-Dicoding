@@ -3,7 +3,7 @@
 
 /**
  * i dont really know why?
- * but cant use "user" as table name
+ * but i cant use "user" as table name
  * use "users" instead.
  */
 exports.up = (pgm) => {

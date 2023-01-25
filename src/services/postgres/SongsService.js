@@ -37,7 +37,7 @@ class SongService {
     const title = params.title;
     const performer = params.performer;
     let query;
-    // switch case
+    // switch case for determining what kind of param included
     switch (true) {
       case (!title && !performer):
         query = {

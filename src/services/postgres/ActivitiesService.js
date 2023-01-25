@@ -51,7 +51,7 @@ class ActivityService {
     const id = `activity-${nanoid(16)}`;
     const s = new Date();
     const year = s.getFullYear();
-    // Month start with 0, january = 0 LOL
+    // Month start with 0, January = 0. need to add 1 on getMonth()
     const month = String(s.getMonth() + 1).padStart(2, '0');
     const day = String(s.getDate()).padStart(2, '0');
     const hours = String(s.getHours()).padStart(2, '0');

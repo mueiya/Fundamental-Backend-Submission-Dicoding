@@ -11,7 +11,6 @@ class AuthenticationHandler {
     this.deleteAuthenticationHandler.bind(this);
   }
 
-  // Why I can't use request.payload without deconstucted it first?
   async postAuthenticationHandler(request, h) {
     const {username, password} = request.payload;
     this._validator.validatePostAuthenticationPayload({

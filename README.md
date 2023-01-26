@@ -1,2 +1,5 @@
 # Fundamental-Backend-Submission-Dicoding
-This repository contains the project's submission for finalizing my fundamental backend course at Dicoding Indonesia.
+This repository contains my project's submission for finalizing my fundamental backend course at Dicoding Indonesia.
+
+## Here's for consumer project
+[Consumer Project Link](https://github.com/mueiya/Fundamenta-Backend-Consumer-Submission-Dicoding)
